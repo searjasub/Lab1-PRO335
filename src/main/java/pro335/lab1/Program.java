@@ -16,5 +16,20 @@ public class Program {
 
     }
 
+    private List<Customer> xmlCustomerParse(String filePath) {
+        return null;
+    }
+
+    private List<Orders> xmlOrdersParse(String filePath) {
+        return null;
+    }
+
+    private List<OrderLines> xmlOrderLinesParse(String filePath) {
+        return null;
+    }
+
+    private void databaseEntry(List<Customer> customerList, List<Orders> ordersList, List<OrderLines> orderLinesList) {
+
+    }
 
 }
