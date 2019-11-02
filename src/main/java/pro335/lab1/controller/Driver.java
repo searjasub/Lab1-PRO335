@@ -7,15 +7,16 @@ import pro335.lab1.model.Orders;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Driver {
@@ -24,18 +25,22 @@ public class Driver {
 
     public void run() {
 
-        String path = "\\test.xml";
+        String path = "test.xml";
 
-        List<Customer> customerList;
+        List<Customer> customerList = xmlCustomerParse(path);
         List<Orders> orderList;
         List<OrderLines> orderLineList;
 
+        for (Customer customer : customerList) {
+            System.out.println(customer.toString());
+        }
     }
 
     private List<Customer> xmlCustomerParse(String filePath) {
 
         List<Customer> customers = new ArrayList<>();
-        Customer customer = new Customer();
+        Customer customer = null;
+        int id = -1;
 
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
@@ -44,21 +49,45 @@ public class Driver {
                 XMLEvent xmlEvent = xmlEventReader.nextEvent();
                 if (xmlEvent.isStartElement()) {
                     StartElement startElement = xmlEvent.asStartElement();
-                    if (startElement.getName().getLocalPart().equals("Age")){
+                    if (startElement.getName().getLocalPart().equals("Customer")) {
+                        customer = new Customer();
+                    } else if (startElement.getName().getLocalPart().equals("Age")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        System.out.println(Integer.parseInt(xmlEvent.asCharacters().getData()));
                         customer.setAge(Integer.parseInt(xmlEvent.asCharacters().getData()));
-                    } else if (startElement.getName().getLocalPart().equals("CustomerId")){
-                        customer.setCustomerId(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    } else if (startElement.getName().getLocalPart().equals("CustomerId")) {
+                        if (id == -1) {
+                            xmlEvent = xmlEventReader.nextEvent();
+                            System.out.println(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                            id = Integer.parseInt(xmlEvent.asCharacters().getData());
+                            customer.setCustomerId(id);
+                        }
+                    } else if (startElement.getName().getLocalPart().equals("Email")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        System.out.println(xmlEvent.asCharacters().getData());
+                        customer.setEmail(xmlEvent.asCharacters().getData());
+                    } else if (startElement.getName().getLocalPart().equals("Name")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        System.out.println(xmlEvent.asCharacters().getData());
+                        customer.setName(xmlEvent.asCharacters().getData());
+                    } else if (startElement.getName().getLocalPart().equals("Orders")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        System.out.println("get into orders");
+                    }
+                }
+                if (xmlEvent.isEndElement()) {
+                    EndElement endElement = xmlEvent.asEndElement();
+                    if (endElement.getName().getLocalPart().equals("Customer")) {
+                        customers.add(customer);
+                        id = -1;
                     }
                 }
 
             }
-
-
         } catch (FileNotFoundException | XMLStreamException e) {
             e.printStackTrace();
         }
-
-        return null;
+        return customers;
     }
 
     private List<Orders> xmlOrdersParse(String filePath) {
@@ -85,8 +114,8 @@ public class Driver {
         String sql = "INSERT INTO Customers (CustomerID, Name, Email, Age) " +
                 "VALUES (?, ?, ?, ?)";
 
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            for(Customer customer : customers) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (Customer customer : customers) {
                 statement.setInt(1, customer.getCustomerId());
                 statement.setString(2, customer.getName());
                 statement.setString(3, customer.getEmail());
@@ -103,8 +132,8 @@ public class Driver {
         String sql = "INSERT INTO Orders (OrderId, CustomerId, Total) " +
                 "VALUES (?, ?, ?)";
 
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            for(Orders order : orders) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (Orders order : orders) {
                 statement.setInt(1, order.getOrderID());
                 statement.setInt(2, order.getCustomerID());
                 statement.setLong(3, order.getTotal());
