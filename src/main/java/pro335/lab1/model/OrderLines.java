@@ -18,6 +18,8 @@ public class OrderLines {
         this.setProductId(productId);
     }
 
+    public OrderLines() {}
+
     public int getOrderLineId() {
         return orderLineId;
     }
