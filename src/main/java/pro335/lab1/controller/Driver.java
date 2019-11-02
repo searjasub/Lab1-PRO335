@@ -72,7 +72,6 @@ public class Driver {
                         customer.setName(xmlEvent.asCharacters().getData());
                     } else if (startElement.getName().getLocalPart().equals("Orders")) {
                         xmlEvent = xmlEventReader.nextEvent();
-                        System.out.println("get into orders");
                     }
                 }
                 if (xmlEvent.isEndElement()) {
