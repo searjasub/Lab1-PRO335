@@ -1,4 +1,4 @@
-package pro335.lab1;
+package pro335.lab1.model;
 
 public class Customer {
 
