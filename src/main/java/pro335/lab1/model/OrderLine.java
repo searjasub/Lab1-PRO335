@@ -1,6 +1,6 @@
 package pro335.lab1.model;
 
-public class OrderLines {
+public class OrderLine {
 
     private int orderLineId;
     private int orderId;
@@ -9,7 +9,7 @@ public class OrderLines {
     private double total;
     private int productId;
 
-    public OrderLines(int orderLineId, int orderId, int qty, double price, double total, int productId) {
+    public OrderLine(int orderLineId, int orderId, int qty, double price, double total, int productId) {
         this.setOrderLineId(orderLineId);
         this.setOrderId(orderId);
         this.setQty(qty);

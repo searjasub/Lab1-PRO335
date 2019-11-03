@@ -7,13 +7,6 @@ public class Customer {
     private String email;
     private int age;
 
-//    public Customer(int customerId, String name, String email, int age) {
-//        setCustomerId(customerId);
-//        setName(name);
-//        setEmail(email);
-//        setAge(age);
-//    }
-
     public int getCustomerId() {
         return customerId;
     }

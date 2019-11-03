@@ -1,8 +1,8 @@
 package pro335.lab1.controller;
 
 import pro335.lab1.model.Customer;
-import pro335.lab1.model.OrderLines;
-import pro335.lab1.model.Orders;
+import pro335.lab1.model.Order;
+import pro335.lab1.model.OrderLine;
 
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
@@ -28,11 +28,15 @@ public class Driver {
         String path = "test.xml";
 
         List<Customer> customerList = xmlCustomerParse(path);
-        List<Orders> orderList;
-        List<OrderLines> orderLineList;
+        List<Order> orderList = xmlOrdersParse(path);
+        List<OrderLine> orderLineList;
 
         for (Customer customer : customerList) {
             System.out.println(customer.toString());
+        }
+
+        for (Order order : orderList) {
+            System.out.println(order.toString());
         }
     }
 
@@ -89,15 +93,52 @@ public class Driver {
         return customers;
     }
 
-    private List<Orders> xmlOrdersParse(String filePath) {
+    private List<Order> xmlOrdersParse(String filePath) {
+        List<Order> orders = new ArrayList<>();
+        Order order = new Order();
+
+        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        try {
+            XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(filePath));
+            while (xmlEventReader.hasNext()) {
+                XMLEvent xmlEvent = xmlEventReader.nextEvent();
+                if (xmlEvent.isStartElement()) {
+                    StartElement startElement = xmlEvent.asStartElement();
+                    if (startElement.getName().getLocalPart().equals("Order")) {
+                        order = new Order();
+                    } else if (startElement.getName().getLocalPart().equals("CustomerId")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        String data = xmlEvent.asCharacters().getData();
+                        int customerId = Integer.parseInt(data);
+                        order.setCustomerID(customerId);
+                    } else if (startElement.getName().getLocalPart().equals("Lines")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                    } else if (startElement.getName().getLocalPart().equals("OrderId")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        order.setOrderID(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    } else if (startElement.getName().getLocalPart().equals("Total")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        order.setTotal(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    }
+                }
+                if (xmlEvent.isEndElement()) {
+                    EndElement endElement = xmlEvent.asEndElement();
+                    if (endElement.getName().getLocalPart().equals("Order")) {
+                        orders.add(order);
+                    }
+                }
+            }
+        } catch (FileNotFoundException | XMLStreamException e) {
+            e.printStackTrace();
+        }
+        return orders;
+    }
+
+    private List<OrderLine> xmlOrderLinesParse(String filePath) {
         return null;
     }
 
-    private List<OrderLines> xmlOrderLinesParse(String filePath) {
-        return null;
-    }
-
-    private void databaseEntry(List<Customer> customerList, List<Orders> ordersList, List<OrderLines> orderLinesList) {
+    private void databaseEntry(List<Customer> customerList, List<Order> ordersList, List<OrderLine> orderLinesList) {
 
     }
 
@@ -127,12 +168,12 @@ public class Driver {
         }
     }
 
-    private void insertOrderssToDb(List<Orders> orders) {
+    private void insertOrderssToDb(List<Order> orders) {
         String sql = "INSERT INTO Orders (OrderId, CustomerId, Total) " +
                 "VALUES (?, ?, ?)";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (Orders order : orders) {
+            for (Order order : orders) {
                 statement.setInt(1, order.getOrderID());
                 statement.setInt(2, order.getCustomerID());
                 statement.setLong(3, order.getTotal());
