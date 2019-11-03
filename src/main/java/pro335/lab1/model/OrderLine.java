@@ -5,18 +5,10 @@ public class OrderLine {
     private int orderLineId;
     private int orderId;
     private int qty;
-    private double price;
-    private double total;
+    private int price;
+    private int total;
     private int productId;
 
-    public OrderLine(int orderLineId, int orderId, int qty, double price, double total, int productId) {
-        this.setOrderLineId(orderLineId);
-        this.setOrderId(orderId);
-        this.setQty(qty);
-        this.setPrice(price);
-        this.setTotal(total);
-        this.setProductId(productId);
-    }
 
     public int getOrderLineId() {
         return orderLineId;
@@ -42,19 +34,19 @@ public class OrderLine {
         this.qty = qty;
     }
 
-    public double getPrice() {
+    public int getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(int price) {
         this.price = price;
     }
 
-    public double getTotal() {
+    public int getTotal() {
         return total;
     }
 
-    public void setTotal(double total) {
+    public void setTotal(int total) {
         this.total = total;
     }
 
@@ -64,5 +56,10 @@ public class OrderLine {
 
     public void setProductId(int productId) {
         this.productId = productId;
+    }
+
+    @Override
+    public String toString() {
+        return "Order ID: " + getOrderId() + " OrderLine ID: " + getOrderLineId() + " Product ID: " + getProductId() + " Price: " + getPrice() + " Qty: " + getQty() + " Total: " + getTotal();
     }
 }

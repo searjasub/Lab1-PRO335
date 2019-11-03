@@ -32,6 +32,6 @@ public class Order {
 
     @Override
     public String toString() {
-        return "Order ID: " + getOrderID() + " Customer ID: " + getCustomerID() + " Total: " + getTotal();
+        return "Customer ID: " + getCustomerID() + " Order ID: " + getOrderID() + " Total: " + getTotal();
     }
 }
