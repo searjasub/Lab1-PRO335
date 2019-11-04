@@ -17,9 +17,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Driver {
 
@@ -47,6 +45,9 @@ public class Driver {
         for (OrderLine orderLine : orderLineList) {
             System.out.println(orderLine.toString());
         }
+
+//        connectToDb();
+//        insertCustomersToDb(customerList);
     }
 
     private List<Customer> xmlCustomerParse(String filePath) {
@@ -142,7 +143,6 @@ public class Driver {
     private List<OrderLine> xmlOrderLinesParse(String filePath) {
         List<OrderLine> orderLines = new ArrayList<>();
         OrderLine orderLine = new OrderLine();
-        Map<Integer, Integer> orderAndOrderLineMap = new HashMap<>();
 
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
@@ -192,7 +192,13 @@ public class Driver {
 
     private void connectToDb() {
         try {
-            connection = DriverManager.getConnection("jdbc://sqlserver://localhost;databaseName=customers", "lab1", "lab1");
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            connection = DriverManager.getConnection("jdbc://sqlserver://localhost;databaseName=customers;user=lab1;password=lab1");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -208,7 +214,6 @@ public class Driver {
                 statement.setString(2, customer.getName());
                 statement.setString(3, customer.getEmail());
                 statement.setInt(4, customer.getAge());
-
                 statement.execute();
             }
         } catch (SQLException e) {
@@ -216,7 +221,7 @@ public class Driver {
         }
     }
 
-    private void insertOrderssToDb(List<Order> orders) {
+    private void insertOrdersToDb(List<Order> orders) {
         String sql = "INSERT INTO Orders (OrderId, CustomerId, Total) " +
                 "VALUES (?, ?, ?)";
 
