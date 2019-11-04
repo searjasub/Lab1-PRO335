@@ -1,18 +1,10 @@
 package pro335.lab1.model;
 
-public class Orders {
+public class Order {
 
     private int OrderID;
     private int CustomerID;
     private long total;
-
-    public Orders(int orderID, int customerID, long total) {
-        setOrderID(orderID);
-        setCustomerID(customerID);
-        setTotal(total);
-    }
-
-    public Orders() {}
 
     public long getTotal() {
         return total;
@@ -38,5 +30,8 @@ public class Orders {
         OrderID = orderID;
     }
 
-
+    @Override
+    public String toString() {
+        return "Customer ID: " + getCustomerID() + " Order ID: " + getOrderID() + " Total: " + getTotal();
+    }
 }

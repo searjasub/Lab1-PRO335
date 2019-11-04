@@ -1,23 +1,25 @@
 package pro335.lab1.controller;
 
 import pro335.lab1.model.Customer;
-import pro335.lab1.model.OrderLines;
-import pro335.lab1.model.Orders;
+import pro335.lab1.model.Order;
+import pro335.lab1.model.OrderLine;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import javax.xml.stream.XMLEventFactory;
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
+import javax.xml.stream.events.EndElement;
 import javax.xml.stream.events.StartElement;
 import javax.xml.stream.events.XMLEvent;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Driver {
 
@@ -25,56 +27,172 @@ public class Driver {
 
     public void run() {
 
-        String path = "\\customers.xml";
+        String path = "test.xml";
 
         List<Customer> customerList = xmlCustomerParse(path);
-        List<Orders> orderList = xmlOrdersParse(path);
-        List<OrderLines> orderLineList = xmlOrderLinesParse(path);
+        List<Order> orderList = xmlOrdersParse(path);
+        List<OrderLine> orderLineList = xmlOrderLinesParse(path);
 
+        System.out.println("******* CUSTOMERS *******");
+        for (Customer customer : customerList) {
+            System.out.println(customer.toString());
+        }
+
+        System.out.println("******* ORDERS *******");
+        for (Order order : orderList) {
+            System.out.println(order.toString());
+        }
+
+        System.out.println("******* ORDER LINES *******");
+        for (OrderLine orderLine : orderLineList) {
+            System.out.println(orderLine.toString());
+        }
     }
 
     private List<Customer> xmlCustomerParse(String filePath) {
-        return null;
-    }
 
-    private List<Orders> xmlOrdersParse(String filePath) {
-        return null;
-    }
+        List<Customer> customers = new ArrayList<>();
+        Customer customer = new Customer();
+        int id = -1;
 
-    private List<OrderLines> xmlOrderLinesParse(String filePath) {
-        List<OrderLines> orderLinesList = new ArrayList<>();
-        OrderLines orderLines = new OrderLines();
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
-
         try {
             XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(filePath));
-
             while (xmlEventReader.hasNext()) {
                 XMLEvent xmlEvent = xmlEventReader.nextEvent();
-
-                if(xmlEvent.isStartElement()) {
+                if (xmlEvent.isStartElement()) {
                     StartElement startElement = xmlEvent.asStartElement();
-
-                    if(startElement.getName().getLocalPart().equals("OrderLineID")) {
-                        orderLines.setOrderLineId(Integer.parseInt(xmlEvent.asCharacters().getData()));
-
+                    if (startElement.getName().getLocalPart().equals("Customer")) {
+                        customer = new Customer();
+                    } else if (startElement.getName().getLocalPart().equals("Age")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        customer.setAge(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    } else if (startElement.getName().getLocalPart().equals("CustomerId")) {
+                        if (id == -1) {
+                            xmlEvent = xmlEventReader.nextEvent();
+                            id = Integer.parseInt(xmlEvent.asCharacters().getData());
+                            customer.setCustomerId(id);
+                        }
+                    } else if (startElement.getName().getLocalPart().equals("Email")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        customer.setEmail(xmlEvent.asCharacters().getData());
+                    } else if (startElement.getName().getLocalPart().equals("Name")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        customer.setName(xmlEvent.asCharacters().getData());
+                    } else if (startElement.getName().getLocalPart().equals("Orders")) {
+                        xmlEvent = xmlEventReader.nextEvent();
                     }
                 }
-            }
+                if (xmlEvent.isEndElement()) {
+                    EndElement endElement = xmlEvent.asEndElement();
+                    if (endElement.getName().getLocalPart().equals("Customer")) {
+                        customers.add(customer);
+                        id = -1;
+                    }
+                }
 
+            }
         } catch (FileNotFoundException | XMLStreamException e) {
             e.printStackTrace();
         }
-        return null;
+        return customers;
     }
 
-    private void databaseEntry(List<Customer> customerList, List<Orders> ordersList, List<OrderLines> orderLinesList) {
+    private List<Order> xmlOrdersParse(String filePath) {
+        List<Order> orders = new ArrayList<>();
+        Order order = new Order();
+
+        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        try {
+            XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(filePath));
+            while (xmlEventReader.hasNext()) {
+                XMLEvent xmlEvent = xmlEventReader.nextEvent();
+                if (xmlEvent.isStartElement()) {
+                    StartElement startElement = xmlEvent.asStartElement();
+                    if (startElement.getName().getLocalPart().equals("Order")) {
+                        order = new Order();
+                    } else if (startElement.getName().getLocalPart().equals("CustomerId")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        String data = xmlEvent.asCharacters().getData();
+                        int customerId = Integer.parseInt(data);
+                        order.setCustomerID(customerId);
+                    } else if (startElement.getName().getLocalPart().equals("Lines")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                    } else if (startElement.getName().getLocalPart().equals("OrderId")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        order.setOrderID(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    } else if (startElement.getName().getLocalPart().equals("Total")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        order.setTotal(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    }
+                }
+                if (xmlEvent.isEndElement()) {
+                    EndElement endElement = xmlEvent.asEndElement();
+                    if (endElement.getName().getLocalPart().equals("Order")) {
+                        orders.add(order);
+                    }
+                }
+            }
+        } catch (FileNotFoundException | XMLStreamException e) {
+            e.printStackTrace();
+        }
+        return orders;
+    }
+
+    private List<OrderLine> xmlOrderLinesParse(String filePath) {
+        List<OrderLine> orderLines = new ArrayList<>();
+        OrderLine orderLine = new OrderLine();
+        Map<Integer, Integer> orderAndOrderLineMap = new HashMap<>();
+
+        XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+        try {
+            XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(filePath));
+            while (xmlEventReader.hasNext()) {
+                XMLEvent xmlEvent = xmlEventReader.nextEvent();
+                if (xmlEvent.isStartElement()) {
+                    StartElement startElement = xmlEvent.asStartElement();
+                    if (startElement.getName().getLocalPart().equals("OrderLine")) {
+                        orderLine = new OrderLine();
+                    } else if (startElement.getName().getLocalPart().equals("OrderId")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        orderLine.setOrderId(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    } else if (startElement.getName().getLocalPart().equals("OrderLineId")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        orderLine.setOrderLineId(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    } else if (startElement.getName().getLocalPart().equals("Price")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        orderLine.setPrice(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    } else if (startElement.getName().getLocalPart().equals("ProductId")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        orderLine.setProductId(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    } else if (startElement.getName().getLocalPart().equals("Qty")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        orderLine.setQty(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    } else if (startElement.getName().getLocalPart().equals("Total")) {
+                        xmlEvent = xmlEventReader.nextEvent();
+                        orderLine.setTotal(Integer.parseInt(xmlEvent.asCharacters().getData()));
+                    }
+                }
+                if (xmlEvent.isEndElement()) {
+                    EndElement endElement = xmlEvent.asEndElement();
+                    if (endElement.getName().getLocalPart().equals("OrderLine")) {
+                        orderLines.add(orderLine);
+                    }
+                }
+            }
+        } catch (FileNotFoundException | XMLStreamException e) {
+            e.printStackTrace();
+        }
+        return orderLines;
+    }
+
+    private void databaseEntry(List<Customer> customerList, List<Order> ordersList, List<OrderLine> orderLinesList) {
 
     }
 
     private void connectToDb() {
         try {
-            connection = DriverManager.getConnection("jdbc://sqlserver://localhost;databaseName=customers", "lab1", "lab1";
+            connection = DriverManager.getConnection("jdbc://sqlserver://localhost;databaseName=customers", "lab1", "lab1");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -84,9 +202,9 @@ public class Driver {
         String sql = "INSERT INTO Customers (CustomerID, Name, Email, Age) " +
                 "VALUES (?, ?, ?, ?)";
 
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            for(Customer customer : customers) {
-                statement.setInt(1, customer.setCustomerId());
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (Customer customer : customers) {
+                statement.setInt(1, customer.getCustomerId());
                 statement.setString(2, customer.getName());
                 statement.setString(3, customer.getEmail());
                 statement.setInt(4, customer.getAge());
@@ -98,12 +216,12 @@ public class Driver {
         }
     }
 
-    private void insertOrderssToDb(List<Orders> orders) {
+    private void insertOrderssToDb(List<Order> orders) {
         String sql = "INSERT INTO Orders (OrderId, CustomerId, Total) " +
                 "VALUES (?, ?, ?)";
 
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            for(Orders order : orders) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (Order order : orders) {
                 statement.setInt(1, order.getOrderID());
                 statement.setInt(2, order.getCustomerID());
                 statement.setLong(3, order.getTotal());
