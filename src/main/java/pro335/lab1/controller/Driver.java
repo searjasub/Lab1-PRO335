@@ -41,6 +41,16 @@ public class Driver {
             System.out.println(order.toString());
         }
 
+        for (int i = 0; i < orderLineList.size(); i++) {
+            if (orderLineList.get(i).getOrderId() != 0) {
+                continue;
+            } else if (orderLineList.get(i + 1).getOrderId() == 0) {
+                orderLineList.get(i).setOrderId(orderLineList.get(i -1).getOrderId() + 1);
+            } else {
+                orderLineList.get(i).setOrderId(orderLineList.get(i + 1).getOrderId());
+            }
+        }
+
         System.out.println("******* ORDER LINES *******");
         for (OrderLine orderLine : orderLineList) {
             System.out.println(orderLine.toString());
@@ -56,9 +66,11 @@ public class Driver {
         Customer customer = new Customer();
         int id = -1;
 
+        System.out.println("Parsing customers");
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
             XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(filePath));
+            int counter = 0;
             while (xmlEventReader.hasNext()) {
                 XMLEvent xmlEvent = xmlEventReader.nextEvent();
                 if (xmlEvent.isStartElement()) {
@@ -91,6 +103,8 @@ public class Driver {
                         id = -1;
                     }
                 }
+//                System.out.println(counter);
+//                counter++;
 
             }
         } catch (FileNotFoundException | XMLStreamException e) {
@@ -103,6 +117,7 @@ public class Driver {
         List<Order> orders = new ArrayList<>();
         Order order = new Order();
 
+        System.out.println("Parsing orders");
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
             XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(filePath));
@@ -143,6 +158,8 @@ public class Driver {
     private List<OrderLine> xmlOrderLinesParse(String filePath) {
         List<OrderLine> orderLines = new ArrayList<>();
         OrderLine orderLine = new OrderLine();
+
+        System.out.println("Parsing order lines");
 
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
