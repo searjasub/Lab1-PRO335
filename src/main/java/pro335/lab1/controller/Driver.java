@@ -56,8 +56,11 @@ public class Driver {
             System.out.println(orderLine.toString());
         }
 
-//        connectToDb();
-//        insertCustomersToDb(customerList);
+        connectToDb();
+        //insertCustomersToDb(customerList);
+        bulkInsertCustomer(customerList);
+        bulkInsertOrder(orderList);
+        bulkInsertOrderLine(orderLineList);
     }
 
     private List<Customer> xmlCustomerParse(String filePath) {
@@ -203,10 +206,6 @@ public class Driver {
         return orderLines;
     }
 
-    private void databaseEntry(List<Customer> customerList, List<Order> ordersList, List<OrderLine> orderLinesList) {
-
-    }
-
     private void connectToDb() {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
@@ -215,7 +214,7 @@ public class Driver {
         }
 
         try {
-            connection = DriverManager.getConnection("jdbc://sqlserver://localhost;databaseName=customers;user=lab1;password=lab1");
+            connection = DriverManager.getConnection("jdbc:sqlserver://localhost;databaseName=customers;user=lab1;password=lab1");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -238,6 +237,34 @@ public class Driver {
         }
     }
 
+    private void bulkInsertCustomer(List<Customer> customers) {
+        String sql = "INSERT INTO Customers (CustomerID, Name, Email, Age) " +
+                "VALUES (?, ?, ?, ?)";
+        int customerCounter = 0;
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)){
+
+            for (Customer customer : customers) {
+                statement.setInt(1, customer.getCustomerId());
+                statement.setString(2, customer.getName());
+                statement.setString(3, customer.getEmail());
+                statement.setInt(4, customer.getAge());
+
+                statement.addBatch();
+                customerCounter++;
+
+                if(customerCounter > 1000) {
+                    statement.executeBatch();
+                    customerCounter = 0;
+                }
+            }
+            statement.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     private void insertOrdersToDb(List<Order> orders) {
         String sql = "INSERT INTO Orders (OrderId, CustomerId, Total) " +
                 "VALUES (?, ?, ?)";
@@ -254,4 +281,57 @@ public class Driver {
             e.printStackTrace();
         }
     }
+
+    private void bulkInsertOrder(List<Order> orders) {
+        String sql = "INSERT INTO Orders (OrderId, CustomerId, Total) " +
+                "VALUES (?, ?, ?)";
+        int orderCounter = 0;
+
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (Order order : orders) {
+                statement.setInt(1, order.getOrderID());
+                statement.setInt(2, order.getCustomerID());
+                statement.setLong(3, order.getTotal());
+
+                statement.addBatch();
+                orderCounter++;
+
+                if(orderCounter > 1000) {
+                    statement.executeBatch();
+                    orderCounter = 0;
+                }
+            }
+            statement.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void bulkInsertOrderLine(List<OrderLine> orderLines) {
+        String sql = "INSERT INTO OrderLines (OrderLineId, OrderId, Qty, ProductId) " +
+                "VALUES (?, ?, ?, ?, ?)";
+        int orderLineCounter = 0;
+
+        try(PreparedStatement statement = connection.prepareStatement(sql)) {
+            for (OrderLine orderLine : orderLines) {
+                statement.setInt(orderLine.getOrderLineId(), 1);
+                statement.setInt(orderLine.getOrderId(), 2);
+                statement.setInt(orderLine.getQty(), 3);
+                statement.setInt(orderLine.getPrice(), 4);
+                statement.setInt(orderLine.getProductId(), 5);
+
+                statement.addBatch();
+                orderLineCounter++;
+
+                if(orderLineCounter > 1000) {
+                    statement.executeBatch();
+                    orderLineCounter = 0;
+                }
+            }
+            statement.executeBatch();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
 }
