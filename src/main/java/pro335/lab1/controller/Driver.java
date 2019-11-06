@@ -314,11 +314,11 @@ public class Driver {
 
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             for (OrderLine orderLine : orderLines) {
-                statement.setInt(orderLine.getOrderLineId(), 1);
-                statement.setInt(orderLine.getOrderId(), 2);
-                statement.setInt(orderLine.getQty(), 3);
-                statement.setInt(orderLine.getPrice(), 4);
-                statement.setInt(orderLine.getProductId(), 5);
+                statement.setInt(1, orderLine.getOrderLineId());
+                statement.setInt(2, orderLine.getOrderId());
+                statement.setInt(3, orderLine.getQty());
+                statement.setInt(4, orderLine.getPrice());
+                statement.setInt(5, orderLine.getProductId());
 
                 statement.addBatch();
                 orderLineCounter++;
