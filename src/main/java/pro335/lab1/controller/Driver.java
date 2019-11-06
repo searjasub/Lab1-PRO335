@@ -31,16 +31,6 @@ public class Driver {
         List<Order> orderList = xmlOrdersParse(path);
         List<OrderLine> orderLineList = xmlOrderLinesParse(path);
 
-        System.out.println("******* CUSTOMERS *******");
-        for (Customer customer : customerList) {
-            System.out.println(customer.toString());
-        }
-
-        System.out.println("******* ORDERS *******");
-        for (Order order : orderList) {
-            System.out.println(order.toString());
-        }
-
         for (int i = 0; i < orderLineList.size(); i++) {
             if (orderLineList.get(i).getOrderId() != 0) {
                 continue;
@@ -51,13 +41,7 @@ public class Driver {
             }
         }
 
-        System.out.println("******* ORDER LINES *******");
-        for (OrderLine orderLine : orderLineList) {
-            System.out.println(orderLine.toString());
-        }
-
         connectToDb();
-        //insertCustomersToDb(customerList);
         bulkInsertCustomer(customerList);
         bulkInsertOrder(orderList);
         bulkInsertOrderLine(orderLineList);
@@ -202,32 +186,12 @@ public class Driver {
         return orderLines;
     }
 
-    private void databaseEntry(List<Customer> customerList, List<Order> ordersList, List<OrderLine> orderLinesList) {
-
-    }
 
     private void connectToDb() {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
             connection = DriverManager.getConnection("jdbc:sqlserver://localhost;databaseName=customers;user=lab1;password=lab1");
         } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void insertCustomersToDb(List<Customer> customers) {
-        String sql = "INSERT INTO Customers (CustomerID, Name, Email, Age) " +
-                "VALUES (?, ?, ?, ?)";
-
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            for (Customer customer : customers) {
-                statement.setInt(1, customer.getCustomerId());
-                statement.setString(2, customer.getName());
-                statement.setString(3, customer.getEmail());
-                statement.setInt(4, customer.getAge());
-                statement.execute();
-            }
-        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
