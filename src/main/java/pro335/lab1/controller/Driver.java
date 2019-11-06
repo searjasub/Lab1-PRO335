@@ -212,7 +212,7 @@ public class Driver {
                 statement.addBatch();
                 customerCounter++;
 
-                if (customerCounter > 1000) {
+                if (customerCounter > 65000) {
                     statement.executeBatch();
                     customerCounter = 0;
                 }
@@ -255,7 +255,7 @@ public class Driver {
                 statement.addBatch();
                 orderCounter++;
 
-                if (orderCounter > 1000) {
+                if (orderCounter > 65000) {
                     statement.executeBatch();
                     orderCounter = 0;
                 }
@@ -282,7 +282,7 @@ public class Driver {
                 statement.addBatch();
                 orderLineCounter++;
 
-                if (orderLineCounter > 1000) {
+                if (orderLineCounter > 65000) {
                     statement.executeBatch();
                     orderLineCounter = 0;
                 }
