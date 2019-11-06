@@ -25,7 +25,7 @@ public class Driver {
 
     public void run() {
 
-        String path = "test.xml";
+        String path = "customers.xml";
 
         List<Customer> customerList = xmlCustomerParse(path);
         List<Order> orderList = xmlOrdersParse(path);
@@ -45,7 +45,7 @@ public class Driver {
             if (orderLineList.get(i).getOrderId() != 0) {
                 continue;
             } else if (orderLineList.get(i + 1).getOrderId() == 0) {
-                orderLineList.get(i).setOrderId(orderLineList.get(i -1).getOrderId() + 1);
+                orderLineList.get(i).setOrderId(orderLineList.get(i - 1).getOrderId() + 1);
             } else {
                 orderLineList.get(i).setOrderId(orderLineList.get(i + 1).getOrderId());
             }
@@ -73,7 +73,6 @@ public class Driver {
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
             XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(filePath));
-            int counter = 0;
             while (xmlEventReader.hasNext()) {
                 XMLEvent xmlEvent = xmlEventReader.nextEvent();
                 if (xmlEvent.isStartElement()) {
@@ -106,9 +105,6 @@ public class Driver {
                         id = -1;
                     }
                 }
-//                System.out.println(counter);
-//                counter++;
-
             }
         } catch (FileNotFoundException | XMLStreamException e) {
             e.printStackTrace();
@@ -206,16 +202,15 @@ public class Driver {
         return orderLines;
     }
 
+    private void databaseEntry(List<Customer> customerList, List<Order> ordersList, List<OrderLine> orderLinesList) {
+
+    }
+
     private void connectToDb() {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        try {
             connection = DriverManager.getConnection("jdbc:sqlserver://localhost;databaseName=customers;user=lab1;password=lab1");
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -242,7 +237,7 @@ public class Driver {
                 "VALUES (?, ?, ?, ?)";
         int customerCounter = 0;
 
-        try (PreparedStatement statement = connection.prepareStatement(sql)){
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
             for (Customer customer : customers) {
                 statement.setInt(1, customer.getCustomerId());
@@ -253,7 +248,7 @@ public class Driver {
                 statement.addBatch();
                 customerCounter++;
 
-                if(customerCounter > 1000) {
+                if (customerCounter > 1000) {
                     statement.executeBatch();
                     customerCounter = 0;
                 }
@@ -296,7 +291,7 @@ public class Driver {
                 statement.addBatch();
                 orderCounter++;
 
-                if(orderCounter > 1000) {
+                if (orderCounter > 1000) {
                     statement.executeBatch();
                     orderCounter = 0;
                 }
@@ -308,11 +303,11 @@ public class Driver {
     }
 
     private void bulkInsertOrderLine(List<OrderLine> orderLines) {
-        String sql = "INSERT INTO OrderLines (OrderLineId, OrderId, Qty, ProductId) " +
+        String sql = "INSERT INTO OrderLines (OrderLineId, OrderId, Qty, Price, ProductId) " +
                 "VALUES (?, ?, ?, ?, ?)";
         int orderLineCounter = 0;
 
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             for (OrderLine orderLine : orderLines) {
                 statement.setInt(1, orderLine.getOrderLineId());
                 statement.setInt(2, orderLine.getOrderId());
@@ -323,7 +318,7 @@ public class Driver {
                 statement.addBatch();
                 orderLineCounter++;
 
-                if(orderLineCounter > 1000) {
+                if (orderLineCounter > 1000) {
                     statement.executeBatch();
                     orderLineCounter = 0;
                 }
