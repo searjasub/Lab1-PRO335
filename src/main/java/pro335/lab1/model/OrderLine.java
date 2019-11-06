@@ -9,9 +9,6 @@ public class OrderLine {
     private int total;
     private int productId;
 
-
-    public OrderLines() {}
-
     public int getOrderLineId() {
         return orderLineId;
     }

@@ -17,9 +17,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Driver {
 
@@ -43,10 +41,23 @@ public class Driver {
             System.out.println(order.toString());
         }
 
+        for (int i = 0; i < orderLineList.size(); i++) {
+            if (orderLineList.get(i).getOrderId() != 0) {
+                continue;
+            } else if (orderLineList.get(i + 1).getOrderId() == 0) {
+                orderLineList.get(i).setOrderId(orderLineList.get(i -1).getOrderId() + 1);
+            } else {
+                orderLineList.get(i).setOrderId(orderLineList.get(i + 1).getOrderId());
+            }
+        }
+
         System.out.println("******* ORDER LINES *******");
         for (OrderLine orderLine : orderLineList) {
             System.out.println(orderLine.toString());
         }
+
+//        connectToDb();
+//        insertCustomersToDb(customerList);
     }
 
     private List<Customer> xmlCustomerParse(String filePath) {
@@ -55,9 +66,11 @@ public class Driver {
         Customer customer = new Customer();
         int id = -1;
 
+        System.out.println("Parsing customers");
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
             XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(filePath));
+            int counter = 0;
             while (xmlEventReader.hasNext()) {
                 XMLEvent xmlEvent = xmlEventReader.nextEvent();
                 if (xmlEvent.isStartElement()) {
@@ -90,6 +103,8 @@ public class Driver {
                         id = -1;
                     }
                 }
+//                System.out.println(counter);
+//                counter++;
 
             }
         } catch (FileNotFoundException | XMLStreamException e) {
@@ -102,6 +117,7 @@ public class Driver {
         List<Order> orders = new ArrayList<>();
         Order order = new Order();
 
+        System.out.println("Parsing orders");
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
             XMLEventReader xmlEventReader = xmlInputFactory.createXMLEventReader(new FileInputStream(filePath));
@@ -142,7 +158,8 @@ public class Driver {
     private List<OrderLine> xmlOrderLinesParse(String filePath) {
         List<OrderLine> orderLines = new ArrayList<>();
         OrderLine orderLine = new OrderLine();
-        Map<Integer, Integer> orderAndOrderLineMap = new HashMap<>();
+
+        System.out.println("Parsing order lines");
 
         XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
         try {
@@ -192,7 +209,13 @@ public class Driver {
 
     private void connectToDb() {
         try {
-            connection = DriverManager.getConnection("jdbc://sqlserver://localhost;databaseName=customers", "lab1", "lab1");
+            Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            connection = DriverManager.getConnection("jdbc://sqlserver://localhost;databaseName=customers;user=lab1;password=lab1");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -208,7 +231,6 @@ public class Driver {
                 statement.setString(2, customer.getName());
                 statement.setString(3, customer.getEmail());
                 statement.setInt(4, customer.getAge());
-
                 statement.execute();
             }
         } catch (SQLException e) {
@@ -216,7 +238,7 @@ public class Driver {
         }
     }
 
-    private void insertOrderssToDb(List<Order> orders) {
+    private void insertOrdersToDb(List<Order> orders) {
         String sql = "INSERT INTO Orders (OrderId, CustomerId, Total) " +
                 "VALUES (?, ?, ?)";
 
