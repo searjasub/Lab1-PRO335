@@ -1,6 +1,5 @@
 package pro335.lab1.controller;
 
-import com.microsoft.sqlserver.jdbc.SQLServerDataTable;
 import pro335.lab1.model.Customer;
 import pro335.lab1.model.Order;
 import pro335.lab1.model.OrderLine;
@@ -57,8 +56,8 @@ public class Driver {
             System.out.println(orderLine.toString());
         }
 
-        connectToDb();
-        insertCustomersToDb(customerList);
+//        connectToDb();
+//        insertCustomersToDb(customerList);
     }
 
     private List<Customer> xmlCustomerParse(String filePath) {
@@ -211,8 +210,13 @@ public class Driver {
     private void connectToDb() {
         try {
             Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");
-            connection = DriverManager.getConnection("jdbc:sqlserver://localhost","lab1", "lab1");
-        } catch (SQLException | ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            connection = DriverManager.getConnection("jdbc://sqlserver://localhost;databaseName=customers;user=lab1;password=lab1");
+        } catch (SQLException e) {
             e.printStackTrace();
         }
     }
